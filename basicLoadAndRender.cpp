@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <iostream>
 
 // Include GLEW
 #include <GL/glew.h>
@@ -58,12 +59,12 @@ int main( void )
 
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-    // Hide the mouse and enable unlimited mouvement
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    
-    // Set the mouse at the center of the screen
-    glfwPollEvents();
-    glfwSetCursorPos(window, 1024/2, 768/2);
+	// Hide the mouse and enable unlimited mouvement
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	// Set the mouse at the center of the screen
+	glfwPollEvents();
+	glfwSetCursorPos(window, 1024/2, 768/2);
 
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
@@ -89,7 +90,7 @@ int main( void )
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 	// Load the texture
 	GLuint Texture = loadDDS("wall.DDS");
-	
+
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
 
@@ -151,77 +152,130 @@ int main( void )
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Use our shader
-		glUseProgram(programID);
 
 		// Compute the MVP matrix from keyboard and mouse input
 		computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		glm::mat4 ViewMatrix = getViewMatrix();
-		glm::mat4 ModelMatrix = glm::mat4(1.0);
-		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+		glUseProgram(programID);
 
 		glm::vec3 lightPos = glm::vec3(4,4,4);
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
+		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]); // This one doesn't change between objects, so this can be done once for all objects that use "programID"
 
-		// Bind our texture in Texture Unit 0
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Texture);
-		// Set our "myTextureSampler" sampler to use Texture Unit 0
-		glUniform1i(TextureID, 0);
+		float x = 0.0;
+		float z = 0.0;
+		float xMax = 20.0;
+		float zMax = 20.0;
+		while (z <= zMax) {
+			while (x <= xMax) {
+				std::cout << "x = " << x << " and z = " << z << std::endl;
+				if ((z == 0.0 || z == zMax) && (x == 0.0 || x == xMax)) {
+						glm::mat4 ModelMatrix = glm::mat4(1.0);
+						ModelMatrix = glm::translate(ModelMatrix, glm::vec3(x, 0.0f, z));
+						glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
-		// 1rst attribute buffer : vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-		glVertexAttribPointer(
-			0,                  // attribute
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
-		);
+						// Send our transformation to the currently bound shader, 
+						// in the "MVP" uniform
+						glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+						glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 
-		// 2nd attribute buffer : UVs
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-		glVertexAttribPointer(
-			1,                                // attribute
-			2,                                // size
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-		);
+						// 1rst attribute buffer : vertices
+						glEnableVertexAttribArray(0);
+						glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+						glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-		// 3rd attribute buffer : normals
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-		glVertexAttribPointer(
-			2,                                // attribute
-			3,                                // size
-			GL_FLOAT,                         // type
-			GL_FALSE,                         // normalized?
-			0,                                // stride
-			(void*)0                          // array buffer offset
-		);
+						// 2nd attribute buffer : UVs
+						glEnableVertexAttribArray(1);
+						glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+						glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-		// Index buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+						// 3rd attribute buffer : normals
+						glEnableVertexAttribArray(2);
+						glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+						glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-		// Draw the triangles !
-		glDrawElements(
-			GL_TRIANGLES,      // mode
-			indices.size(),    // count
-			GL_UNSIGNED_SHORT,   // type
-			(void*)0           // element array buffer offset
-		);
+						// Index buffer
+						glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+						// Draw the triangles !
+						glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, (void*)0);
+						
+				}
+				else if (z > 0.0 || z < zMax) {
+					if (x == 0.0 || x == xMax) {
+						glm::mat4 ModelMatrix = glm::mat4(1.0);
+						ModelMatrix = glm::translate(ModelMatrix, glm::vec3(x, 0.0f, z));
+						glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+						// Send our transformation to the currently bound shader, 
+						// in the "MVP" uniform
+						glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+						glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+
+						// 1rst attribute buffer : vertices
+						glEnableVertexAttribArray(0);
+						glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+						glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+						// 2nd attribute buffer : UVs
+						glEnableVertexAttribArray(1);
+						glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+						glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+						// 3rd attribute buffer : normals
+						glEnableVertexAttribArray(2);
+						glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+						glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+						// Index buffer
+						glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+						// Draw the triangles !
+						glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, (void*)0);
+					}
+				}
+				else if (x > 0.0 || x < xMax) {
+					if (z == 0.0 || z == zMax) {
+						glm::mat4 ModelMatrix = glm::mat4(1.0);
+						ModelMatrix = glm::translate(ModelMatrix, glm::vec3(x, 0.0f, z));
+						glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+						// Send our transformation to the currently bound shader, 
+						// in the "MVP" uniform
+						glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+						glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+
+						// 1rst attribute buffer : vertices
+						glEnableVertexAttribArray(0);
+						glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+						glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+						// 2nd attribute buffer : UVs
+						glEnableVertexAttribArray(1);
+						glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+						glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+						// 3rd attribute buffer : normals
+						glEnableVertexAttribArray(2);
+						glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+						glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+						// Index buffer
+						glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+						// Draw the triangles !
+						glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, (void*)0);
+					}
+				}
+				x += 2.0;
+			}
+			x = 0.0;
+			z += 2.0;
+		}
+
+		// END OF OBJ RENDER
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
@@ -233,8 +287,7 @@ int main( void )
 
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
-		   glfwWindowShouldClose(window) == 0 );
-
+			glfwWindowShouldClose(window) == 0 );
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &uvbuffer);
