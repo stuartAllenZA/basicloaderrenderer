@@ -22,6 +22,37 @@ using namespace glm;
 #include "common/objloader.hpp"
 #include "common/vboindexer.hpp"
 
+int	playerX = 2;
+int playerZ = 2;
+
+void	movePlayerZ(int direction) {
+	switch (direction) {
+		case 1:
+			std::cout << "moving up\n";
+			break;
+		case -1:
+			std::cout << "moving down\n";
+			break;
+		default:
+			break;
+	}
+	playerZ += direction;
+}
+
+void	movePlayerX(int direction) {
+	switch (direction) {
+		case 1:
+			std::cout << "moving right\n";
+			break;
+		case -1:
+			std::cout << "moving left\n";
+			break;
+		default:
+			break;
+	}
+	playerX += direction *-1;
+}
+
 int main( void )
 {
 	// Initialise GLFW
@@ -106,6 +137,12 @@ int main( void )
 	std::vector<glm::vec2> FloorUvs;
 	std::vector<glm::vec3> FloorNormals;
 	bool res2 = loadOBJ("cube.obj", FloorVertices, FloorUvs, FloorNormals);
+
+	// Read our .obj file
+	std::vector<glm::vec3> CharacterVertices;
+	std::vector<glm::vec2> CharacterUvs;
+	std::vector<glm::vec3> CharacterNormals;
+	bool res3 = loadOBJ("cube.obj", CharacterVertices, CharacterUvs, CharacterNormals);
 	
 	std::vector<unsigned short> wall_indices;
 	std::vector<glm::vec3> wall_indexed_vertices;
@@ -118,6 +155,12 @@ int main( void )
 	std::vector<glm::vec2> floor_indexed_uvs;
 	std::vector<glm::vec3> floor_indexed_normals;
 	indexVBO(FloorVertices, FloorUvs, FloorNormals, floor_indices, floor_indexed_vertices, floor_indexed_uvs, floor_indexed_normals);
+
+	std::vector<unsigned short> character_indices;
+	std::vector<glm::vec3> character_indexed_vertices;
+	std::vector<glm::vec2> character_indexed_uvs;
+	std::vector<glm::vec3> character_indexed_normals;
+	indexVBO(CharacterVertices, CharacterUvs, CharacterNormals, character_indices, character_indexed_vertices, character_indexed_uvs, character_indexed_normals);
 	
 	// Load it into a VBO
 	GLuint WallVertexbuffer;
@@ -150,6 +193,21 @@ int main( void )
 	glBindBuffer(GL_ARRAY_BUFFER, FloorNormalbuffer);
 	glBufferData(GL_ARRAY_BUFFER, floor_indexed_normals.size() * sizeof(glm::vec3), &floor_indexed_normals[0], GL_STATIC_DRAW);
 
+	GLuint CharacterVertexbuffer;
+	glGenBuffers(1, &CharacterVertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, CharacterVertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, character_indexed_vertices.size() * sizeof(glm::vec3), &character_indexed_vertices[0], GL_STATIC_DRAW);
+
+	GLuint Characteruvbuffer;
+	glGenBuffers(1, &Characteruvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, Characteruvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, character_indexed_uvs.size() * sizeof(glm::vec2), &character_indexed_uvs[0], GL_STATIC_DRAW);
+
+	GLuint CharacterNormalbuffer;
+	glGenBuffers(1, &CharacterNormalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, CharacterNormalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, character_indexed_normals.size() * sizeof(glm::vec3), &character_indexed_normals[0], GL_STATIC_DRAW);
+
 	// Generate a buffer for the indices as well
 	GLuint WallElementbuffer;
 	glGenBuffers(1, &WallElementbuffer);
@@ -162,6 +220,11 @@ int main( void )
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, FloorElementbuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, floor_indices.size() * sizeof(unsigned short), &floor_indices[0] , GL_STATIC_DRAW);
 
+	GLuint CharacterElementbuffer;
+	glGenBuffers(1, &CharacterElementbuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CharacterElementbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, character_indices.size() * sizeof(unsigned short), &character_indices[0] , GL_STATIC_DRAW);
+
 	// Get a handle for our "LightPosition" uniform
 	glUseProgram(programID);
 	GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
@@ -169,6 +232,7 @@ int main( void )
 	// For speed computation
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
+	int input = 0;
 
 	do{
 
@@ -176,8 +240,7 @@ int main( void )
 		double currentTime = glfwGetTime();
 		nbFrames++;
 		if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1sec ago
-			// printf and reset
-			printf("%f ms/frame\n", 1000.0/double(nbFrames));
+			std::cout << 1000.0/double(nbFrames) << " ms/frame\n";
 			nbFrames = 0;
 			lastTime += 1.0;
 		}
@@ -187,7 +250,7 @@ int main( void )
 
 
 		// Compute the MVP matrix from keyboard and mouse input
-		computeMatricesFromInputs();
+		input = computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		glm::mat4 ViewMatrix = getViewMatrix();
 
@@ -197,13 +260,34 @@ int main( void )
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]); // This one doesn't change between objects, so this can be done once for all objects that use "programID"
 
+
+		switch(input) {
+			case 119:
+				movePlayerZ(1);
+				break;
+			case 115:
+				movePlayerZ(-1);
+				break;
+			case 100:
+				movePlayerX(1);
+				break;
+			case 97:
+				movePlayerX(-1);
+				break;
+			default:
+				break;
+		}
+
+		// render floor
+		// render walls
+		// render character
+
 		float x = 0.0;
 		float z = 0.0;
 		float xMax = 20.0;
 		float zMax = 20.0;
 		while (z <= zMax) {
 			while (x <= xMax) {
-				std::cout << "x = " << x << " and z = " << z << std::endl;
 				if (((z != 0.0 && z != zMax) && (x != 0.0 && x != xMax)) && ((z != 0.0 && z != zMax) && (x != 0.0 || x != xMax))) {
 						glm::mat4 ModelMatrix = glm::mat4(1.0);
 						ModelMatrix = glm::translate(ModelMatrix, glm::vec3(x, -1.0f, z));
@@ -250,7 +334,6 @@ int main( void )
 		zMax = 20.0;
 		while (z <= zMax) {
 			while (x <= xMax) {
-				std::cout << "x = " << x << " and z = " << z << std::endl;
 				if (((z == 0.0 || z == zMax) && (x != 0.0 || x != xMax)) || ((z != 0.0 || z != zMax) && (x == 0.0 || x == xMax))) {
 						glm::mat4 ModelMatrix = glm::mat4(1.0);
 						ModelMatrix = glm::translate(ModelMatrix, glm::vec3(x, 0.0f, z));
@@ -288,6 +371,39 @@ int main( void )
 			x = 0.0;
 			z += 2.0;
 		}
+
+		glm::mat4 ModelMatrix = glm::mat4(1.0);
+		ModelMatrix = glm::translate(ModelMatrix, glm::vec3(playerX, 0.0f, playerZ));
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+		// Send our transformation to the currently bound shader, 
+		// in the "MVP" uniform
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
+
+		// 1rst attribute buffer : vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, CharacterVertexbuffer);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// 2nd attribute buffer : UVs
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, Characteruvbuffer);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// 3rd attribute buffer : normals
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, CharacterNormalbuffer);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+		// Index buffer
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CharacterElementbuffer);
+
+		// Draw the triangles !
+		glDrawElements(GL_TRIANGLES, character_indices.size(), GL_UNSIGNED_SHORT, (void*)0);
+
+
+
 		// END OF OBJ RENDER
 
 		glDisableVertexAttribArray(0);
