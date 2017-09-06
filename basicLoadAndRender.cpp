@@ -142,7 +142,7 @@ int main( void )
 	std::vector<glm::vec3> CharacterVertices;
 	std::vector<glm::vec2> CharacterUvs;
 	std::vector<glm::vec3> CharacterNormals;
-	bool res3 = loadOBJ("cube.obj", CharacterVertices, CharacterUvs, CharacterNormals);
+	bool res3 = loadOBJ("man.obj", CharacterVertices, CharacterUvs, CharacterNormals);
 	
 	std::vector<unsigned short> wall_indices;
 	std::vector<glm::vec3> wall_indexed_vertices;
