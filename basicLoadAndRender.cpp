@@ -39,9 +39,9 @@ int main( void )
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow( 1024, 768, "Tutorial 09 - VBO Indexing", NULL, NULL);
+	window = glfwCreateWindow( 1024, 768, "Bomberman", NULL, NULL);
 	if( window == NULL ){
-		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
+		fprintf( stderr, "Failed to init glfw\n" );
 		getchar();
 		glfwTerminate();
 		return -1;
@@ -89,30 +89,30 @@ int main( void )
 	GLuint ViewMatrixID = glGetUniformLocation(programID, "V");
 	GLuint ModelMatrixID = glGetUniformLocation(programID, "M");
 	// Load the texture
-//	GLuint WallTexture = loadDDS("wall.DDS");
+	GLuint WallTexture = loadDDS("wall.DDS");
 	GLuint FloorTexture = loadDDS("floor.DDS");
 
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
 
-/*	// Read our .obj file
+	// Read our .obj file
 	std::vector<glm::vec3> WallVertices;
 	std::vector<glm::vec2> WallUvs;
 	std::vector<glm::vec3> WallNormals;
 	bool res = loadOBJ("cube.obj", WallVertices, WallUvs, WallNormals);
-*/
+
 	// Read our .obj file
 	std::vector<glm::vec3> FloorVertices;
 	std::vector<glm::vec2> FloorUvs;
 	std::vector<glm::vec3> FloorNormals;
-	bool res2 = loadOBJ("plane.obj", FloorVertices, FloorUvs, FloorNormals);
-/*	
+	bool res2 = loadOBJ("cube.obj", FloorVertices, FloorUvs, FloorNormals);
+	
 	std::vector<unsigned short> wall_indices;
 	std::vector<glm::vec3> wall_indexed_vertices;
 	std::vector<glm::vec2> wall_indexed_uvs;
 	std::vector<glm::vec3> wall_indexed_normals;
 	indexVBO(WallVertices, WallUvs, WallNormals, wall_indices, wall_indexed_vertices, wall_indexed_uvs, wall_indexed_normals);
-*/	
+	
 	std::vector<unsigned short> floor_indices;
 	std::vector<glm::vec3> floor_indexed_vertices;
 	std::vector<glm::vec2> floor_indexed_uvs;
@@ -120,7 +120,6 @@ int main( void )
 	indexVBO(FloorVertices, FloorUvs, FloorNormals, floor_indices, floor_indexed_vertices, floor_indexed_uvs, floor_indexed_normals);
 	
 	// Load it into a VBO
-/*
 	GLuint WallVertexbuffer;
 	glGenBuffers(1, &WallVertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, WallVertexbuffer);
@@ -135,7 +134,7 @@ int main( void )
 	glGenBuffers(1, &WallNormalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, WallNormalbuffer);
 	glBufferData(GL_ARRAY_BUFFER, wall_indexed_normals.size() * sizeof(glm::vec3), &wall_indexed_normals[0], GL_STATIC_DRAW);
-*/
+	
 	GLuint FloorVertexbuffer;
 	glGenBuffers(1, &FloorVertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, FloorVertexbuffer);
@@ -150,13 +149,13 @@ int main( void )
 	glGenBuffers(1, &FloorNormalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, FloorNormalbuffer);
 	glBufferData(GL_ARRAY_BUFFER, floor_indexed_normals.size() * sizeof(glm::vec3), &floor_indexed_normals[0], GL_STATIC_DRAW);
-/*
+
 	// Generate a buffer for the indices as well
 	GLuint WallElementbuffer;
 	glGenBuffers(1, &WallElementbuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, WallElementbuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, wall_indices.size() * sizeof(unsigned short), &wall_indices[0] , GL_STATIC_DRAW);
-*/
+
 	// Generate a buffer for the indices as well
 	GLuint FloorElementbuffer;
 	glGenBuffers(1, &FloorElementbuffer);
@@ -207,7 +206,7 @@ int main( void )
 				std::cout << "x = " << x << " and z = " << z << std::endl;
 				if (((z != 0.0 && z != zMax) && (x != 0.0 && x != xMax)) && ((z != 0.0 && z != zMax) && (x != 0.0 || x != xMax))) {
 						glm::mat4 ModelMatrix = glm::mat4(1.0);
-						ModelMatrix = glm::translate(ModelMatrix, glm::vec3(x, 0.0f, z));
+						ModelMatrix = glm::translate(ModelMatrix, glm::vec3(x, -1.0f, z));
 						glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
 						// Send our transformation to the currently bound shader, 
@@ -242,7 +241,9 @@ int main( void )
 			x = 0.0;
 			z += 2.0;
 		}
-		/*
+
+
+//		GLuint WallTexture = loadDDS("wall.DDS");
 		x = 0.0;
 		z = 0.0;
 		xMax = 20.0;
@@ -287,7 +288,6 @@ int main( void )
 			x = 0.0;
 			z += 2.0;
 		}
-*/
 		// END OF OBJ RENDER
 
 		glDisableVertexAttribArray(0);
@@ -302,14 +302,14 @@ int main( void )
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
 			glfwWindowShouldClose(window) == 0 );
 	// Cleanup VBO and shader
-/*	glDeleteBuffers(1, &WallVertexbuffer);
+	glDeleteBuffers(1, &WallVertexbuffer);
 	glDeleteBuffers(1, &Walluvbuffer);
 	glDeleteBuffers(1, &WallNormalbuffer);
 	glDeleteBuffers(1, &WallElementbuffer);
 	glDeleteProgram(programID);
 	glDeleteTextures(1, &WallTexture);
 	glDeleteVertexArrays(1, &VertexArrayID);
-*/
+
 	glDeleteBuffers(1, &FloorVertexbuffer);
 	glDeleteBuffers(1, &Flooruvbuffer);
 	glDeleteBuffers(1, &FloorNormalbuffer);

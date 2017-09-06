@@ -19,18 +19,20 @@ glm::mat4 getProjectionMatrix(){
 	return ProjectionMatrix;
 }
 
+// CHANGE ALL VALUES TO VARS LOOADED FROM SETTINGS
 
-// Initial position : on +Z
-glm::vec3 position = glm::vec3( 0, 0, 5 ); 
+
+// Initial position
+glm::vec3 position = glm::vec3( 10, 15, -2); 
 // Initial horizontal angle : toward -Z
-float horizontalAngle = 3.14f;
+float horizontalAngle = 0.0f;
 // Initial vertical angle : none
-float verticalAngle = 0.0f;
+float verticalAngle = -45.0f;
 // Initial Field of View
-float initialFoV = 45.0f;
+float initialFoV = 60.0f;
 
-float speed = 3.0f; // 3 units / second
-float mouseSpeed = 0.005f;
+float speed = 1.0f; // 3 units / second
+float mouseSpeed = 0.001f;
 
 
 
@@ -49,10 +51,10 @@ void computeMatricesFromInputs(){
 
 	// Reset mouse position for next frame
 	glfwSetCursorPos(window, 1024/2, 768/2);
-
+	
 	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(1024/2 - xpos );
-	verticalAngle   += mouseSpeed * float( 768/2 - ypos );
+	// horizontalAngle += mouseSpeed * float(1024/2 - xpos );
+	// verticalAngle   += mouseSpeed * float( 768/2 - ypos );
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
@@ -72,19 +74,19 @@ void computeMatricesFromInputs(){
 	glm::vec3 up = glm::cross( right, direction );
 
 	// Move forward
-	if (glfwGetKey( window, GLFW_KEY_UP ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS){
 		position += direction * deltaTime * speed;
 	}
 	// Move backward
-	if (glfwGetKey( window, GLFW_KEY_DOWN ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_S ) == GLFW_PRESS){
 		position -= direction * deltaTime * speed;
 	}
 	// Strafe right
-	if (glfwGetKey( window, GLFW_KEY_RIGHT ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_D ) == GLFW_PRESS){
 		position += right * deltaTime * speed;
 	}
 	// Strafe left
-	if (glfwGetKey( window, GLFW_KEY_LEFT ) == GLFW_PRESS){
+	if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS){
 		position -= right * deltaTime * speed;
 	}
 
