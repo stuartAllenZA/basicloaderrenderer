@@ -1,3 +1,5 @@
+#include <gfx.hpp>
+
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +27,7 @@ using namespace glm;
 int	playerX = 2;
 int playerZ = 2;
 
-void	movePlayerZ(int direction) {
+void	gfx::Gfx::movePlayerZ(int direction) {
 	switch (direction) {
 		case 1:
 			std::cout << "moving up\n";
@@ -39,7 +41,7 @@ void	movePlayerZ(int direction) {
 	playerZ += direction;
 }
 
-void	movePlayerX(int direction) {
+void	gfx::Gfx::movePlayerX(int direction) {
 	switch (direction) {
 		case 1:
 			std::cout << "moving right\n";
@@ -53,7 +55,7 @@ void	movePlayerX(int direction) {
 	playerX += direction *-1;
 }
 
-int main( void )
+int		gfx::Gfx::all( void )
 {
 	// Initialise GLFW
 	if( !glfwInit() )
@@ -239,8 +241,8 @@ int main( void )
 		// Measure speed
 		double currentTime = glfwGetTime();
 		nbFrames++;
-		if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1sec ago
-			std::cout << 1000.0/double(nbFrames) << " ms/frame\n";
+		if ( currentTime - lastTime >= 4.0 ){ // If last prinf() was more than 1sec ago
+			std::cout << 4000.0/double(nbFrames) << " ms/frame\n";
 			nbFrames = 0;
 			lastTime += 1.0;
 		}
